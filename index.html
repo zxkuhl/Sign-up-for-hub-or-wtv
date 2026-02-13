@@ -533,6 +533,120 @@
 
     window.loadNotifications = loadNotifications;
     window.loadDashboard = loadDashboard;
+
+    // Authentication functions
+    window.showLogin = function() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('dashboard').classList.remove('active');
+    }
+
+    window.showSignup = function() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupForm').style.display = 'block';
+        document.getElementById('dashboard').classList.remove('active');
+    }
+
+    window.handleLogin = async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.classList.remove('show');
+
+        try {
+            const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            // Look up user by username to get their auth email
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('username', '==', username));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                throw new Error('Username not found');
+            }
+            
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+            
+            // Use the stored auth email (which might be auto-generated or real)
+            await signInWithEmailAndPassword(auth, userData.authEmail, password);
+        } catch (error) {
+            if (error.message.includes('not found')) {
+                errorDiv.textContent = 'Username not found';
+            } else if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
+                errorDiv.textContent = 'Incorrect password';
+            } else {
+                errorDiv.textContent = error.message;
+            }
+            errorDiv.classList.add('show');
+        }
+    }
+
+    window.handleSignup = async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('signupUsername').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const errorDiv = document.getElementById('signupError');
+        errorDiv.classList.remove('show');
+
+        try {
+            const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            let userEmail = email;
+            let isAnonymous = false;
+            
+            // If no email provided, generate a hidden one for Firebase auth
+            if (!email || email.trim() === '') {
+                userEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@kittyscripts.local`;
+                isAnonymous = true;
+            }
+            
+            const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
+            await updateProfile(userCredential.user, { displayName: username });
+            
+            // Create user document
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+                username: username,
+                email: isAnonymous ? null : email,
+                authEmail: userEmail, // Store the actual auth email
+                createdAt: new Date(),
+                photoURL: 'https://via.placeholder.com/120',
+                isAnonymous: isAnonymous
+            });
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.add('show');
+        }
+    }
+
+    window.handleLogout = async function() {
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        await signOut(auth);
+    }
+
+    window.handleProfilePicUpload = async function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        const user = auth.currentUser;
+        const storageRef = ref(storage, `profilePics/${user.uid}`);
+        
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        document.getElementById('profilePic').src = downloadURL;
+        
+        await updateDoc(doc(db, 'users', user.uid), {
+            photoURL: downloadURL
+        });
+    }
 </script>
 
 <script>
@@ -574,117 +688,6 @@
             read: true
         }
     ];
-
-    function showLogin() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('signupForm').style.display = 'none';
-        document.getElementById('dashboard').classList.remove('active');
-    }
-
-    function showSignup() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('signupForm').style.display = 'block';
-        document.getElementById('dashboard').classList.remove('active');
-    }
-
-    async function handleLogin(event) {
-        event.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
-        const errorDiv = document.getElementById('loginError');
-
-        try {
-            const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
-            // Look up user by username to get their auth email
-            const usersRef = collection(window.db, 'users');
-            const q = query(usersRef, where('username', '==', username));
-            const querySnapshot = await getDocs(q);
-            
-            if (querySnapshot.empty) {
-                throw new Error('Username not found');
-            }
-            
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            
-            // Use the stored auth email (which might be auto-generated or real)
-            await signInWithEmailAndPassword(window.auth, userData.authEmail, password);
-        } catch (error) {
-            if (error.message.includes('not found')) {
-                errorDiv.textContent = 'Username not found';
-            } else if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
-                errorDiv.textContent = 'Incorrect password';
-            } else {
-                errorDiv.textContent = error.message;
-            }
-            errorDiv.classList.add('show');
-        }
-    }
-
-    async function handleSignup(event) {
-        event.preventDefault();
-        const username = document.getElementById('signupUsername').value;
-        const email = document.getElementById('signupEmail').value;
-        const password = document.getElementById('signupPassword').value;
-        const errorDiv = document.getElementById('signupError');
-
-        try {
-            const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
-            let userEmail = email;
-            let isAnonymous = false;
-            
-            // If no email provided, generate a hidden one for Firebase auth
-            if (!email || email.trim() === '') {
-                userEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@kittyscripts.local`;
-                isAnonymous = true;
-            }
-            
-            const userCredential = await createUserWithEmailAndPassword(window.auth, userEmail, password);
-            await updateProfile(userCredential.user, { displayName: username });
-            
-            // Create user document
-            await setDoc(doc(window.db, 'users', userCredential.user.uid), {
-                username: username,
-                email: isAnonymous ? null : email,
-                authEmail: userEmail, // Store the actual auth email
-                createdAt: new Date(),
-                photoURL: 'https://via.placeholder.com/120',
-                isAnonymous: isAnonymous
-            });
-        } catch (error) {
-            errorDiv.textContent = error.message;
-            errorDiv.classList.add('show');
-        }
-    }
-
-    async function handleLogout() {
-        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-        await signOut(window.auth);
-    }
-
-    async function handleProfilePicUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
-        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-        const user = window.auth.currentUser;
-        const storageRef = ref(window.storage, `profilePics/${user.uid}`);
-        
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        
-        document.getElementById('profilePic').src = downloadURL;
-        
-        await updateDoc(doc(window.db, 'users', user.uid), {
-            photoURL: downloadURL
-        });
-    }
 
     function displayNotifications(notifications) {
         allNotifications = notifications.length > 0 ? notifications : sampleNotifications;
