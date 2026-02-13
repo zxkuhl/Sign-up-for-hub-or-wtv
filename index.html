@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KittyScripts Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        max-width: 1200px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+
+    .header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+    }
+
+    .content {
+        padding: 40px;
+    }
+
+    /* Auth Forms */
+    .auth-container {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+        background: #f5f5f5;
+    }
+
+    .switch-auth {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+    }
+
+    .switch-auth a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .switch-auth a:hover {
+        text-decoration: underline;
+    }
+
+    /* Dashboard */
+    .dashboard {
+        display: none;
+    }
+
+    .dashboard.active {
+        display: block;
+    }
+
+    .profile-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .profile-pic-container {
+        position: relative;
+    }
+
+    .profile-pic {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .profile-pic-upload {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #667eea;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .profile-pic-upload:hover {
+        background: #764ba2;
+    }
+
+    .profile-info h2 {
+        font-size: 1.8em;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .profile-info p {
+        color: #666;
+        font-size: 1.1em;
+    }
+
+    .notifications-section {
+        margin-top: 30px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h3 {
+        font-size: 1.5em;
+        color: #333;
+    }
+
+    .notification-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .notification-tab {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.3s;
+    }
+
+    .notification-tab.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+
+    .notification-tab:hover {
+        color: #667eea;
+    }
+
+    .notifications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .notification-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .notification-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+
+    .notification-item.unread {
+        border-left: 4px solid #667eea;
+        background: #f8f9ff;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 10px;
+    }
+
+    .notification-category {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+
+    .category-discord {
+        background: #5865f2;
+        color: white;
+    }
+
+    .category-script {
+        background: #43b581;
+        color: white;
+    }
+
+    .category-system {
+        background: #faa61a;
+        color: white;
+    }
+
+    .notification-time {
+        color: #999;
+        font-size: 0.9em;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        font-size: 1.1em;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .notification-content {
+        color: #666;
+        line-height: 1.5;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state svg {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    .logout-btn {
+        background: #ff4757;
+        margin-top: 20px;
+    }
+
+    .logout-btn:hover {
+        background: #ee5a6f;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .profile-section {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .notification-tabs {
+            overflow-x: auto;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐱 KittyScripts Hub</h1>
+            <p>Your premium Roblox script platform</p>
+        </div>
+
+```
+    <div class="content">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-container">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Welcome Back</h2>
+            <div class="error-message" id="loginError"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn">Log In</button>
+            </form>
+            <div class="switch-auth">
+                Don't have an account? <a href="#" onclick="showSignup(); return false;">Sign Up</a>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="auth-container" style="display: none;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Create Account</h2>
+            <div class="error-message" id="signupError"></div>
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signupUsername">Username</label>
+                    <input type="text" id="signupUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email <span style="color: #999; font-weight: normal;">(optional but recommended)</span></label>
+                    <input type="email" id="signupEmail">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" required minlength="6">
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+            <div class="switch-auth">
+                Already have an account? <a href="#" onclick="showLogin(); return false;">Log In</a>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="profile-section">
+                <div class="profile-pic-container">
+                    <img src="https://via.placeholder.com/120" alt="Profile" class="profile-pic" id="profilePic">
+                    <div class="profile-pic-upload" onclick="document.getElementById('fileInput').click()">
+                        📷
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleProfilePicUpload(event)">
+                </div>
+                <div class="profile-info">
+                    <h2 id="profileUsername">Loading...</h2>
+                    <p id="profileEmail">email@example.com</p>
+                </div>
+            </div>
+
+            <div class="notifications-section">
+                <div class="section-header">
+                    <h3>📬 Notifications</h3>
+                </div>
+
+                <div class="notification-tabs">
+                    <button class="notification-tab active" onclick="filterNotifications('all')">All</button>
+                    <button class="notification-tab" onclick="filterNotifications('discord')">Discord</button>
+                    <button class="notification-tab" onclick="filterNotifications('scripts')">Script Updates</button>
+                    <button class="notification-tab" onclick="filterNotifications('system')">System</button>
+                </div>
+
+                <div class="notifications-list" id="notificationsList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+
+            <button class="btn logout-btn" onclick="handleLogout()">Log Out</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+    // TODO: Replace with your Firebase config
+    const firebaseConfig = {
+apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
+  authDomain: "test-81062.firebaseapp.com",
+  databaseURL: "https://test-81062-default-rtdb.firebaseio.com",
+  projectId: "test-81062",
+  storageBucket: "test-81062.firebasestorage.app",
+  messagingSenderId: "973552500364",
+  appId: "1:973552500364:web:f48c7c0cf981aa178745a9",
+  measurementId: "G-9D5PQJMKQ2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    window.auth = auth;
+    window.db = db;
+    window.storage = storage;
+
+    // Auth state observer
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await loadDashboard(user);
+            loadNotifications(user.uid);
+        } else {
+            showLogin();
+        }
+    });
+
+    // Load dashboard
+    async function loadDashboard(user) {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+
+        // Get user profile
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userData = userDoc.data();
+
+        document.getElementById('profileUsername').textContent = userData?.username || 'User';
+        document.getElementById('profileEmail').textContent = user.email || userData?.email || 'No email provided';
+
+        if (userData?.photoURL) {
+            document.getElementById('profilePic').src = userData.photoURL;
+        }
+    }
+
+    // Load notifications
+    function loadNotifications(userId) {
+        const notificationsRef = collection(db, 'notifications');
+        const q = query(notificationsRef, orderBy('timestamp', 'desc'));
+
+        onSnapshot(q, (snapshot) => {
+            const notifications = [];
+            snapshot.forEach((doc) => {
+                notifications.push({ id: doc.id, ...doc.data() });
+            });
+            
+            displayNotifications(notifications);
+        });
+    }
+
+    window.loadNotifications = loadNotifications;
+    window.loadDashboard = loadDashboard;
+</script>
+
+<script>
+    let allNotifications = [];
+    let currentFilter = 'all';
+
+    // Sample notifications for demo
+    const sampleNotifications = [
+        {
+            id: '1',
+            category: 'discord',
+            title: 'New Announcement',
+            content: 'KittyScripts v2.0 is now live! Check out the new features in our Discord server.',
+            timestamp: new Date(Date.now() - 3600000),
+            read: false
+        },
+        {
+            id: '2',
+            category: 'scripts',
+            title: 'Script Update: Universal ESP',
+            content: 'Universal ESP has been updated with better performance and new customization options.',
+            timestamp: new Date(Date.now() - 7200000),
+            read: false
+        },
+        {
+            id: '3',
+            category: 'system',
+            title: 'Maintenance Notice',
+            content: 'Scheduled maintenance on Feb 15th, 2026 from 2-4 AM EST. Scripts will remain accessible.',
+            timestamp: new Date(Date.now() - 86400000),
+            read: true
+        },
+        {
+            id: '4',
+            category: 'discord',
+            title: 'Community Event',
+            content: 'Join us this weekend for a script showcase event! Winners get premium access.',
+            timestamp: new Date(Date.now() - 172800000),
+            read: true
+        }
+    ];
+
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('dashboard').classList.remove('active');
+    }
+
+    function showSignup() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupForm').style.display = 'block';
+        document.getElementById('dashboard').classList.remove('active');
+    }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+
+        try {
+            const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            await signInWithEmailAndPassword(window.auth, email, password);
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.add('show');
+        }
+    }
+
+    async function handleSignup(event) {
+        event.preventDefault();
+        const username = document.getElementById('signupUsername').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const errorDiv = document.getElementById('signupError');
+
+        try {
+            const { createUserWithEmailAndPassword, signInAnonymously, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            let userCredential;
+            
+            // If email provided, use email/password auth
+            if (email && email.trim() !== '') {
+                userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+            } else {
+                // If no email, create anonymous account with username/password stored in Firestore
+                userCredential = await signInAnonymously(window.auth);
+            }
+            
+            await updateProfile(userCredential.user, { displayName: username });
+            
+            // Create user document
+            await setDoc(doc(window.db, 'users', userCredential.user.uid), {
+                username: username,
+                email: email || null,
+                password: email ? null : password, // Store password hash only if no email (for manual auth)
+                createdAt: new Date(),
+                photoURL: 'https://via.placeholder.com/120',
+                isAnonymous: !email || email.trim() === ''
+            });
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.add('show');
+        }
+    }
+
+    async function handleLogout() {
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        await signOut(window.auth);
+    }
+
+    async function handleProfilePicUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const { ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js');
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        const user = window.auth.currentUser;
+        const storageRef = ref(window.storage, `profilePics/${user.uid}`);
+        
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        document.getElementById('profilePic').src = downloadURL;
+        
+        await updateDoc(doc(window.db, 'users', user.uid), {
+            photoURL: downloadURL
+        });
+    }
+
+    function displayNotifications(notifications) {
+        allNotifications = notifications.length > 0 ? notifications : sampleNotifications;
+        filterNotifications(currentFilter);
+    }
+
+    function filterNotifications(filter) {
+        currentFilter = filter;
+        
+        // Update active tab
+        document.querySelectorAll('.notification-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        event?.target.classList.add('active');
+
+        let filtered = allNotifications;
+        if (filter !== 'all') {
+            const categoryMap = {
+                'discord': 'discord',
+                'scripts': 'scripts',
+                'system': 'system'
+            };
+            filtered = allNotifications.filter(n => n.category === categoryMap[filter]);
+        }
+
+        const listContainer = document.getElementById('notificationsList');
+        
+        if (filtered.length === 0) {
+            listContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <p>No notifications yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        listContainer.innerHTML = filtered.map(notif => {
+            const timeAgo = getTimeAgo(notif.timestamp);
+            return `
+                <div class="notification-item ${notif.read ? '' : 'unread'}">
+                    <div class="notification-header">
+                        <span class="notification-category category-${notif.category}">
+                            ${notif.category.toUpperCase()}
+                        </span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-title">${notif.title}</div>
+                    <div class="notification-content">${notif.content}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diff = Math.floor((now - time) / 1000);
+
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+        return time.toLocaleDateString();
+    }
+
+    // Initialize with sample data
+    displayNotifications(sampleNotifications);
+</script>
+```
+
+</body>
+</html>
