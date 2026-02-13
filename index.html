@@ -385,8 +385,8 @@
             <div class="error-message" id="loginError"></div>
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" required>
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
@@ -435,7 +435,7 @@
                 </div>
                 <div class="profile-info">
                     <h2 id="profileUsername">Loading...</h2>
-                    <p id="profileEmail">email@example.com</p>
+                    <p id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b2d7dfd3dbdef2d7cad3dfc2ded79cd1dddf">[email&#160;protected]</a></p>
                 </div>
             </div>
 
@@ -462,22 +462,21 @@
 </div>
 
 <!-- Firebase SDK -->
-<script type="module">
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
-    // TODO: Replace with your Firebase config
     const firebaseConfig = {
-apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
-  authDomain: "test-81062.firebaseapp.com",
-  databaseURL: "https://test-81062-default-rtdb.firebaseio.com",
-  projectId: "test-81062",
-  storageBucket: "test-81062.firebasestorage.app",
-  messagingSenderId: "973552500364",
-  appId: "1:973552500364:web:f48c7c0cf981aa178745a9",
-  measurementId: "G-9D5PQJMKQ2"
+        apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
+        authDomain: "test-81062.firebaseapp.com",
+        databaseURL: "https://test-81062-default-rtdb.firebaseio.com",
+        projectId: "test-81062",
+        storageBucket: "test-81062.firebasestorage.app",
+        messagingSenderId: "973552500364",
+        appId: "1:973552500364:web:f48c7c0cf981aa178745a9",
+        measurementId: "G-9D5PQJMKQ2"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -590,15 +589,36 @@ apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
 
     async function handleLogin(event) {
         event.preventDefault();
-        const email = document.getElementById('loginEmail').value;
+        const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
         const errorDiv = document.getElementById('loginError');
 
         try {
             const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            await signInWithEmailAndPassword(window.auth, email, password);
+            const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            // Look up user by username to get their auth email
+            const usersRef = collection(window.db, 'users');
+            const q = query(usersRef, where('username', '==', username));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                throw new Error('Username not found');
+            }
+            
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+            
+            // Use the stored auth email (which might be auto-generated or real)
+            await signInWithEmailAndPassword(window.auth, userData.authEmail, password);
         } catch (error) {
-            errorDiv.textContent = error.message;
+            if (error.message.includes('not found')) {
+                errorDiv.textContent = 'Username not found';
+            } else if (error.message.includes('wrong-password') || error.message.includes('invalid-credential')) {
+                errorDiv.textContent = 'Incorrect password';
+            } else {
+                errorDiv.textContent = error.message;
+            }
             errorDiv.classList.add('show');
         }
     }
@@ -611,29 +631,29 @@ apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
         const errorDiv = document.getElementById('signupError');
 
         try {
-            const { createUserWithEmailAndPassword, signInAnonymously, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             
-            let userCredential;
+            let userEmail = email;
+            let isAnonymous = false;
             
-            // If email provided, use email/password auth
-            if (email && email.trim() !== '') {
-                userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
-            } else {
-                // If no email, create anonymous account with username/password stored in Firestore
-                userCredential = await signInAnonymously(window.auth);
+            // If no email provided, generate a hidden one for Firebase auth
+            if (!email || email.trim() === '') {
+                userEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@kittyscripts.local`;
+                isAnonymous = true;
             }
             
+            const userCredential = await createUserWithEmailAndPassword(window.auth, userEmail, password);
             await updateProfile(userCredential.user, { displayName: username });
             
             // Create user document
             await setDoc(doc(window.db, 'users', userCredential.user.uid), {
                 username: username,
-                email: email || null,
-                password: email ? null : password, // Store password hash only if no email (for manual auth)
+                email: isAnonymous ? null : email,
+                authEmail: userEmail, // Store the actual auth email
                 createdAt: new Date(),
                 photoURL: 'https://via.placeholder.com/120',
-                isAnonymous: !email || email.trim() === ''
+                isAnonymous: isAnonymous
             });
         } catch (error) {
             errorDiv.textContent = error.message;
@@ -730,14 +750,5 @@ apiKey: "AIzaSyAH92j1gV8GD0o51tdqwFyLsqP9tyANZ2k",
         if (diff < 60) return 'Just now';
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-        return time.toLocaleDateString();
-    }
-
-    // Initialize with sample data
-    displayNotifications(sampleNotifications);
-</script>
+        if (diff < 
 ```
-
-</body>
-</html>
